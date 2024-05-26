@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+require('dotenv').config();
+
 const crypto = require("crypto");
 const https = require("https");
 
@@ -294,7 +295,7 @@ const main = async () => {
 
   const executeBuyOrder = async () => {
     const privateEndpoint = "AddOrder";
-    const privateInputParameters = `pair=xbt${CURRENCY.toLowerCase()}&type=buy&ordertype=market&volume=${KRAKEN_BTC_ORDER_SIZE}`;
+    const privateInputParameters = `pair=xbt${CURRENCY.toLowerCase()}&type=buy&ordertype=limit&price=${lastBtcFiatPrice}&volume=${KRAKEN_BTC_ORDER_SIZE}`; //changes made to reflect limit order for bid price
     let privateResponse = "";
     privateResponse = await queryPrivateApi(
       privateEndpoint,
@@ -338,7 +339,7 @@ const main = async () => {
           "Ticker",
           `pair=${cryptoPrefix}XBT${fiatPrefix}${CURRENCY}`
         )
-      )?.result?.[`${cryptoPrefix}XBT${fiatPrefix}${CURRENCY}`]?.p?.[0]
+      )?.result?.[`${cryptoPrefix}XBT${fiatPrefix}${CURRENCY}`]?.b?.[0] //changes made to obtain bid price instead of market price
     );
 
   const printInvalidCurrencyError = () => {
@@ -382,11 +383,9 @@ const main = async () => {
     // If 'DATE_OF_CASH_REFILL' is not set, ignore.
     if (firstRun && !isNaN(DATE_OF_CASH_REFILL)) {
       dateOfEmptyFiat.setDate(DATE_OF_CASH_REFILL);
-      if (dateOfEmptyFiat.getTime() <= Date.now()) {
-        dateOfEmptyFiat.setMonth(dateOfEmptyFiat.getMonth() + 1);
-      }
+      dateOfEmptyFiat.setDate(dateOfEmptyFiat.getDate() + 90); //change made to set interval for days instead of months
     } else {
-      dateOfEmptyFiat.setMonth(dateOfEmptyFiat.getMonth() + 1);
+      dateOfEmptyFiat.setDate(dateOfEmptyFiat.getDate() + 90); //change made to set interval for days instead of months
     }
 
     if (isWeekend(dateOfEmptyFiat))
